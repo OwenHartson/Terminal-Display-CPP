@@ -1,0 +1,34 @@
+#================================================
+#
+# Configuration File for Terminal Display
+#
+#================================================
+
+
+#==================== Titles ====================
+show_os=true
+show_host_name=true
+#------------------------------------------------
+
+
+#==================== Color Controls ============
+# Title Colors and Info Colors:
+#   - blue
+#   - red
+#   - green
+#   - yellow
+#   - cyan
+#   - magenta
+#   - white
+#   - black
+#   - bold
+#   - none
+
+title_color=magenta
+info_color=none
+#------------------------------------------------
+
+
+#==================== ASCII Art =================
+show_ascii_art=false
+#------------------------------------------------
