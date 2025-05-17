@@ -14,6 +14,9 @@ class Config{
             SHOW_OS,
             SHOW_HOST_NAME,
             SHOW_ASCII_ART,
+            SHOW_CPU,
+            SHOW_RAM,
+            SHOW_GPU,
             ERROR
         };
 

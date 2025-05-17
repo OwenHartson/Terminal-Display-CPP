@@ -1,22 +1,18 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
-#include <unistd.h>
-#include <sys/utsname.h>
 #include <vector>
 
 #include "config.h"
 #include "color_text.h"
 #include "ascii_art.h"
+#include "get_sys_info.h"
 
 using namespace std;
 
 const string CONFIG_FILE_PATH{"config.txt"};
 
-string getOS();
-string getHostname();
 void displayConfigOptions(const unordered_map<string, string>& config, Config& configFile);
-
 
 int main(){
     Config configFile;
@@ -24,21 +20,6 @@ int main(){
         const auto& config = configFile.getConfigMap();
         displayConfigOptions(config, configFile);
     }
-}
-
-string getOS(){
-    struct utsname buffer;
-    if (uname(&buffer) == 0) {
-        return string(buffer.sysname);
-    } else {
-        return "Unknown Linux";
-    }
-}
-
-string getHostname(){
-    char hostname[256];
-    gethostname(hostname, sizeof(hostname));
-    return string(hostname);
 }
 
 void displayConfigOptions(const unordered_map<string, string>& config, Config& configFile){
@@ -74,13 +55,22 @@ void displayConfigOptions(const unordered_map<string, string>& config, Config& c
         if(value == "true"){
             switch(configFile.hashString(key)){
                 case Config::StringCode::SHOW_OS:
-                    infoLines.push_back(colorize("Operating System: ", titleColor) + colorize(getOS(), infoColor));
+                    infoLines.push_back(colorize("Operating System: ", titleColor) + colorize(SysInfo::getOS(), infoColor));
                     break;
                 case Config::StringCode::SHOW_HOST_NAME:
-                    infoLines.push_back(colorize("Host Name: ", titleColor) + colorize(getHostname(), infoColor));
+                    infoLines.push_back(colorize("Host Name: ", titleColor) + colorize(SysInfo::getHostName(), infoColor));
                     break;
                 case Config::StringCode::SHOW_ASCII_ART:
                     showAsciiArt = true;
+                    break;
+                case Config::StringCode::SHOW_CPU:
+                    infoLines.push_back(colorize("CPU: ", titleColor) + colorize(SysInfo::getCPU(), infoColor));
+                    break;
+                case Config::StringCode::SHOW_RAM:
+                    infoLines.push_back(colorize("RAM: ", titleColor) + colorize(SysInfo::getRam(), infoColor));
+                    break;
+                case Config::StringCode::SHOW_GPU:
+                    infoLines.push_back(colorize("GPU: ", titleColor) + colorize(SysInfo::getGPU(), infoColor));
                     break;
                 default:
                     break;
@@ -88,19 +78,70 @@ void displayConfigOptions(const unordered_map<string, string>& config, Config& c
         }
     }
 
+    infoLines.at(0) = "";
+
+    auto strip_ansi = [](const std::string& str) -> std::string{
+        string result;
+        bool inEscape = false;
+        for(size_t i = 0; i < str.size(); ++i){
+            if(str[i] == '\033') inEscape = true;
+            else if(inEscape && str[i] == 'm') inEscape = false;
+            else if(!inEscape) result += str[i];
+        }
+        return result;
+    };
+
+    size_t maxInfoLen{0};
+    for(const auto& line : infoLines){
+        size_t len = strip_ansi(line).length();
+        if(len > maxInfoLen){
+            maxInfoLen = len;
+        }
+    }
+
+    string infoBorder = string(maxInfoLen, '_');
+
     if(showAsciiArt == true){
         auto art = AsciiArt::getArt();
 
-        size_t maxLines = max(art.size(), infoLines.size());
+        size_t maxArtLength{0};
+        for(const auto& line : art){
+            if(line.length() > maxArtLength){
+                maxArtLength = line.length();
+            }
+        }
+        size_t infoIndent = maxArtLength + 2;
+
+        size_t maxLines = max(art.size(), infoLines.size() + 2);
         for(size_t i = 0; i < maxLines; i++){
             string artPart = (i < art.size()) ? art[i] : string(art.empty() ? 0 : art[0].size(), ' ');
-            string infoPart = (i < infoLines.size()) ? infoLines[i] : "";
-            cout << artPart << "  " << infoPart << endl;
+            string infoPart;
+
+            if(i == 0 || i == infoLines.size() + 1){
+                infoPart = infoBorder;
+            }else if(i - 1 < infoLines.size()){
+                string stripped = strip_ansi(infoLines[i - 1]);
+                size_t pad = maxInfoLen > stripped.length() ? maxInfoLen - stripped.length() : 0;
+                infoPart = infoLines[i - 1] + string(pad, ' ');
+            }else{
+                infoPart = "";
+            }
+
+            cout << artPart;
+            if(!infoPart.empty()){
+                cout << string(infoIndent - artPart.length(), ' ') << infoPart;
+            }
+            cout << endl;
         }
+
     }else{
+        cout << infoBorder << endl;
+        cout << endl;
         for(size_t i = 0; i < infoLines.size(); i++){
-            string infoPart = (i < infoLines.size()) ? infoLines[i] : "";
-            cout << infoPart << endl;
+            string stripped = strip_ansi(infoLines[i]);
+            size_t pad = maxInfoLen > stripped.length() ? maxInfoLen - stripped.length() : 0;
+            cout << infoLines[i] << string(pad, ' ') << endl;
         }
+        cout << infoBorder << endl;
     }
 }

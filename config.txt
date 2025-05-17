@@ -8,6 +8,9 @@
 #==================== Titles ====================
 show_os=true
 show_host_name=true
+show_cpu=true
+show_ram=true
+show_gpu=true
 #------------------------------------------------
 
 
@@ -30,5 +33,5 @@ info_color=none
 
 
 #==================== ASCII Art =================
-show_ascii_art=false
+show_ascii_art=true
 #------------------------------------------------

@@ -38,5 +38,8 @@ Config::StringCode Config::hashString(const std::string& str){
     if(str == "show_os") return StringCode::SHOW_OS;
     if(str == "show_host_name") return StringCode::SHOW_HOST_NAME;
     if(str == "show_ascii_art") return StringCode::SHOW_ASCII_ART;
+    if(str == "show_cpu") return StringCode::SHOW_CPU;
+    if(str == "show_ram") return StringCode::SHOW_RAM;
+    if(str == "show_gpu") return StringCode::SHOW_GPU;
     return StringCode::ERROR;
 }
